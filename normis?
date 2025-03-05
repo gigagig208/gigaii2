@@ -147,3 +147,65 @@ print("Триграммы:", trigram_vectorizer.get_feature_names_out())
 
 from sklearn.neighbors import NearestNeighbors
 KDTree
+
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score
+import joblib
+
+# Пример данных (замени на свои данные)
+text_data = [
+    "Привет, как дела?",
+    "У меня всё отлично, спасибо!",
+    "Какой сегодня прекрасный день.",
+    "Я изучаю машинное обучение.",
+    "Биграммы и триграммы — это интересно."
+]
+
+# Создание биграмм и триграмм с помощью TfidfVectorizer
+vectorizer = TfidfVectorizer(ngram_range=(2, 3))  # (2, 2) для биграмм, (3, 3) для триграмм, (2, 3) для биграмм и триграмм
+X = vectorizer.fit_transform(text_data)
+
+# Масштабирование данных
+scaler = StandardScaler(with_mean=False)  # with_mean=False для разреженных матриц
+X_scaler = scaler.fit_transform(X)
+
+# Кластеризация с помощью KMeans
+kmeans = KMeans(n_clusters=3, random_state=42)
+clusters = kmeans.fit_predict(X_scaler)
+
+# Визуализация кластеров (если данные двумерные)
+plt.figure(figsize=(8, 6))
+sns.scatterplot(x=X_scaler[:, 0], y=X_scaler[:, 1], hue=clusters, palette='viridis')
+plt.title("Кластеризация текстовых данных")
+plt.show()
+
+# Разделение данных на обучающую и тестовую выборки
+y = [0, 1, 0, 1, 0]  # Пример меток (замени на свои данные)
+X_train, X_test, y_train, y_test = train_test_split(X_scaler, y, test_size=0.2, random_state=42)
+
+print("Форма обучающих данных:", X_train.shape)
+print("Форма тестовых данных:", X_test.shape)
+print("Форма обучающих меток:", y_train.shape)
+print("Форма тестовых меток:", y_test.shape)
+
+# Обучение модели KNN
+knn = KNeighborsClassifier()
+knn.fit(X_train, y_train)
+
+# Предсказание на тестовых данных
+predict = knn.predict(X_test)
+print("Предсказания:", predict)
+
+# Оценка точности
+accuracy = accuracy_score(predict, y_test)
+print("Точность модели:", accuracy)
+
+# Сохранение модели
+joblib.dump(knn, 'test_model.pkl')
